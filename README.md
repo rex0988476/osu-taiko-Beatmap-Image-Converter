@@ -1,12 +1,11 @@
 # osu-taiko-Beatmap-Image-Converter
 
 ## Description
-Simulate stock market, you can buy and sell stocks.  
+Parse .osu file to beatmap image.  
 
 ## Requirement
-* PyQt5
-* matplotlib
-* random
+* OpenCV
+* Numpy
 
 ## Usage
 0. Download this project and unzip it.  
