@@ -1,0 +1,4 @@
+Title:Replicant
+Artist:Yorushika
+Mapper:Hivie
+Difficulty Name:Mirror
