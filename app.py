@@ -5,11 +5,6 @@ import os
 import shutil
 
 ##########variable
-FILE_FOLDER_PATH='./osu file input folder/'
-OSU_FILE_NAME='Umeboshi Chazuke - ICHIBANBOSHIROCKET (_gt) [INNER ONI].osu'
-OSU_FILE_NAME='DJ Raisei - when ____ disappears from the world (Raphalge) [Inner Oni].osu'
-OSU_FILE_NAME='Yorushika - Replicant (Hivie) [Mirror].osu'
-#OSU_FILE_NAME='Kobaryo - New Game Plus (Love Plus rmx) (JarvisGaming) [go play Rabbit and Steel].osu' #have bug
 BAR_W=320
 BAR_H=60
 #TIME_SIGNATURES=[]
@@ -27,8 +22,8 @@ BAR_LINE_Y_OFFSET=10#for small bar line and notes layout
 ##########function
 
 def clean_temp_folder():
-    shutil.rmtree('./data/four_temp_bar')
-    shutil.rmtree('./data/final_temp_bar')
+    shutil.rmtree('./data')
+    os.mkdir('./data')
     os.mkdir('./data/four_temp_bar')
     os.mkdir('./data/final_temp_bar')
 
@@ -215,10 +210,10 @@ def check_and_update_bar_start_offset_and_change_bar(note_offset,hb_index):
         CURRENT_BAR_START_OFFSET += ONE_BAR_TOTAL_TIME
 
         #HIT_OBJS + 'bar_name' key
-        HIT_OBJS[hb_index]['bar_name']=str(BAR_IMG_NUM)
         BAR_IMG_NUM += 1
         if BAR_IMG_NUM == 5:#4 bar per line, concat 4 bar img to one line img
             BAR_IMG_NUM = 1
+        HIT_OBJS[hb_index]['bar_name']=str(BAR_IMG_NUM)
         BAR_IMG_NUM_DRAW+=1
 
 def calculate_note_position():
@@ -233,6 +228,9 @@ def calculate_note_position():
             #if x+BAR.small_obj_radius>BAR_W or x<0:
             #    error_report_f.write(f"{i},{x},{HIT_OBJS[i][0]},{CURRENT_BAR_START_OFFSET+ONE_BAR_TOTAL_TIME},{int(CURRENT_BAR_START_OFFSET+ONE_BAR_TOTAL_TIME)},{BAR_IMG_NUM_DRAW}\n")
             HIT_OBJS[i]['bar_num']=BAR_IMG_NUM_DRAW
+            #print(BAR_IMG_NUM_DRAW,BAR_IMG_NUM)
+            #if i==2:
+            #    exit(0)
             HIT_OBJS[i]['pix_position_x']=x
         else:#WIP
             HIT_OBJS[i]['bar_num']=-1
@@ -243,27 +241,29 @@ def calculate_note_position():
 def draw_object_to_bar():
     global BAR
     global ONE_LINE_IMG_NUM
-    BAR.draw_barline(HIT_OBJS[-1]['bar_num'])
-    cur_bar_num=HIT_OBJS[-1]['bar_num']#to draw on left top
-    cur_bar_name=int(HIT_OBJS[-1]['bar_name'])#1~4, to save
-    if HIT_OBJS[-1]['obj_type']=="note":
-        if HIT_OBJS[-1]['color']=="red":
-            if HIT_OBJS[-1]['size']=="small":
-                cv2.circle(BAR.img, (OFFSET_OF_FIRST_NOTE_IN_A_BAR+HIT_OBJS[-1]['pix_position_x'], int(BAR.h/2)+BAR_LINE_Y_OFFSET), SMALL_OBJ_RADIUS, NOTE_COLOR_RED, -1)
-                cv2.circle(BAR.img, (OFFSET_OF_FIRST_NOTE_IN_A_BAR+HIT_OBJS[-1]['pix_position_x'], int(BAR.h/2)+BAR_LINE_Y_OFFSET), SMALL_OBJ_RADIUS, (255,255,255), 1)
-            elif HIT_OBJS[-1]['size']=="big":
-                cv2.circle(BAR.img, (OFFSET_OF_FIRST_NOTE_IN_A_BAR+HIT_OBJS[-1]['pix_position_x'], int(BAR.h/2)+BAR_LINE_Y_OFFSET), BIG_OBJ_RADIUS, NOTE_COLOR_RED, -1)
-                cv2.circle(BAR.img, (OFFSET_OF_FIRST_NOTE_IN_A_BAR+HIT_OBJS[-1]['pix_position_x'], int(BAR.h/2)+BAR_LINE_Y_OFFSET), BIG_OBJ_RADIUS, (255,255,255), 1)
-        elif HIT_OBJS[-1]['color']=="blue":
-            if HIT_OBJS[-1]['size']=="small":
-                cv2.circle(BAR.img, (OFFSET_OF_FIRST_NOTE_IN_A_BAR+HIT_OBJS[-1]['pix_position_x'], int(BAR.h/2)+BAR_LINE_Y_OFFSET), SMALL_OBJ_RADIUS, NOTE_COLOR_BLUE, -1)
-                cv2.circle(BAR.img, (OFFSET_OF_FIRST_NOTE_IN_A_BAR+HIT_OBJS[-1]['pix_position_x'], int(BAR.h/2)+BAR_LINE_Y_OFFSET), SMALL_OBJ_RADIUS, (255,255,255), 1)
-            elif HIT_OBJS[-1]['size']=="big":
-                cv2.circle(BAR.img, (OFFSET_OF_FIRST_NOTE_IN_A_BAR+HIT_OBJS[-1]['pix_position_x'], int(BAR.h/2)+BAR_LINE_Y_OFFSET), BIG_OBJ_RADIUS, NOTE_COLOR_BLUE, -1)
-                cv2.circle(BAR.img, (OFFSET_OF_FIRST_NOTE_IN_A_BAR+HIT_OBJS[-1]['pix_position_x'], int(BAR.h/2)+BAR_LINE_Y_OFFSET), BIG_OBJ_RADIUS, (255,255,255), 1)
-    i=len(HIT_OBJS)-2
+
+    i=len(HIT_OBJS)-1
+    BAR.draw_barline(HIT_OBJS[i]['bar_num'])
+    cur_bar_num=HIT_OBJS[i]['bar_num']#to draw on left top
+    cur_bar_name=int(HIT_OBJS[i]['bar_name'])#1~4, to save
     is_first=True
     while i>=0:
+        if HIT_OBJS[i]['obj_type']=="note":
+            if HIT_OBJS[i]['color']=="red":
+                if HIT_OBJS[i]['size']=="small":
+                    cv2.circle(BAR.img, (OFFSET_OF_FIRST_NOTE_IN_A_BAR+HIT_OBJS[i]['pix_position_x'], int(BAR.h/2)+BAR_LINE_Y_OFFSET), SMALL_OBJ_RADIUS, NOTE_COLOR_RED, -1)
+                    cv2.circle(BAR.img, (OFFSET_OF_FIRST_NOTE_IN_A_BAR+HIT_OBJS[i]['pix_position_x'], int(BAR.h/2)+BAR_LINE_Y_OFFSET), SMALL_OBJ_RADIUS, (255,255,255), 1)
+                elif HIT_OBJS[i]['size']=="big":
+                    cv2.circle(BAR.img, (OFFSET_OF_FIRST_NOTE_IN_A_BAR+HIT_OBJS[i]['pix_position_x'], int(BAR.h/2)+BAR_LINE_Y_OFFSET), BIG_OBJ_RADIUS, NOTE_COLOR_RED, -1)
+                    cv2.circle(BAR.img, (OFFSET_OF_FIRST_NOTE_IN_A_BAR+HIT_OBJS[i]['pix_position_x'], int(BAR.h/2)+BAR_LINE_Y_OFFSET), BIG_OBJ_RADIUS, (255,255,255), 1)
+            elif HIT_OBJS[i]['color']=="blue":
+                if HIT_OBJS[i]['size']=="small":
+                    cv2.circle(BAR.img, (OFFSET_OF_FIRST_NOTE_IN_A_BAR+HIT_OBJS[i]['pix_position_x'], int(BAR.h/2)+BAR_LINE_Y_OFFSET), SMALL_OBJ_RADIUS, NOTE_COLOR_BLUE, -1)
+                    cv2.circle(BAR.img, (OFFSET_OF_FIRST_NOTE_IN_A_BAR+HIT_OBJS[i]['pix_position_x'], int(BAR.h/2)+BAR_LINE_Y_OFFSET), SMALL_OBJ_RADIUS, (255,255,255), 1)
+                elif HIT_OBJS[i]['size']=="big":
+                    cv2.circle(BAR.img, (OFFSET_OF_FIRST_NOTE_IN_A_BAR+HIT_OBJS[i]['pix_position_x'], int(BAR.h/2)+BAR_LINE_Y_OFFSET), BIG_OBJ_RADIUS, NOTE_COLOR_BLUE, -1)
+                    cv2.circle(BAR.img, (OFFSET_OF_FIRST_NOTE_IN_A_BAR+HIT_OBJS[i]['pix_position_x'], int(BAR.h/2)+BAR_LINE_Y_OFFSET), BIG_OBJ_RADIUS, (255,255,255), 1)
+        i-=1
         while cur_bar_num > HIT_OBJS[i]['bar_num'] and HIT_OBJS[i]['bar_num']!=-1:
             #save img
             BAR.save_img(cur_bar_name)
@@ -283,23 +283,6 @@ def draw_object_to_bar():
             BAR=Bar(BAR_W,BAR_H,BACKGROUND_COLOR,TIME_SIGNATURE,SMALL_OBJ_RADIUS)
             cur_bar_num-=1
             BAR.draw_barline(cur_bar_num)
-
-        if HIT_OBJS[i]['obj_type']=="note":
-            if HIT_OBJS[i]['color']=="red":
-                if HIT_OBJS[i]['size']=="small":
-                    cv2.circle(BAR.img, (OFFSET_OF_FIRST_NOTE_IN_A_BAR+HIT_OBJS[i]['pix_position_x'], int(BAR.h/2)+BAR_LINE_Y_OFFSET), SMALL_OBJ_RADIUS, NOTE_COLOR_RED, -1)
-                    cv2.circle(BAR.img, (OFFSET_OF_FIRST_NOTE_IN_A_BAR+HIT_OBJS[i]['pix_position_x'], int(BAR.h/2)+BAR_LINE_Y_OFFSET), SMALL_OBJ_RADIUS, (255,255,255), 1)
-                elif HIT_OBJS[i]['size']=="big":
-                    cv2.circle(BAR.img, (OFFSET_OF_FIRST_NOTE_IN_A_BAR+HIT_OBJS[i]['pix_position_x'], int(BAR.h/2)+BAR_LINE_Y_OFFSET), BIG_OBJ_RADIUS, NOTE_COLOR_RED, -1)
-                    cv2.circle(BAR.img, (OFFSET_OF_FIRST_NOTE_IN_A_BAR+HIT_OBJS[i]['pix_position_x'], int(BAR.h/2)+BAR_LINE_Y_OFFSET), BIG_OBJ_RADIUS, (255,255,255), 1)
-            elif HIT_OBJS[i]['color']=="blue":
-                if HIT_OBJS[i]['size']=="small":
-                    cv2.circle(BAR.img, (OFFSET_OF_FIRST_NOTE_IN_A_BAR+HIT_OBJS[i]['pix_position_x'], int(BAR.h/2)+BAR_LINE_Y_OFFSET), SMALL_OBJ_RADIUS, NOTE_COLOR_BLUE, -1)
-                    cv2.circle(BAR.img, (OFFSET_OF_FIRST_NOTE_IN_A_BAR+HIT_OBJS[i]['pix_position_x'], int(BAR.h/2)+BAR_LINE_Y_OFFSET), SMALL_OBJ_RADIUS, (255,255,255), 1)
-                elif HIT_OBJS[i]['size']=="big":
-                    cv2.circle(BAR.img, (OFFSET_OF_FIRST_NOTE_IN_A_BAR+HIT_OBJS[i]['pix_position_x'], int(BAR.h/2)+BAR_LINE_Y_OFFSET), BIG_OBJ_RADIUS, NOTE_COLOR_BLUE, -1)
-                    cv2.circle(BAR.img, (OFFSET_OF_FIRST_NOTE_IN_A_BAR+HIT_OBJS[i]['pix_position_x'], int(BAR.h/2)+BAR_LINE_Y_OFFSET), BIG_OBJ_RADIUS, (255,255,255), 1)
-        i-=1
 
 def four_bar_img_to_one_img(img_num,is_last=False,t=0):
     if not is_last:
@@ -433,62 +416,88 @@ class Bar():
     def save_img(self,img_num):
         cv2.imwrite(f'./data/four_temp_bar/{img_num}.png',self.img)
 
-##########code
-
-#init folder
-clean_temp_folder()
-
-#creat black bar img for last line that may have less than 4 bar to concat.
-gen_black_bar_img()
-
-#read .osu and parse to title.txt, bpm.txt and hitobj.txt
-read_map_information(FILE_FOLDER_PATH+OSU_FILE_NAME)
-
-#read title.txt
-name,artist,mapper_name,difficulty_name=read_title_txt()
-
-#read bpm.txt
-bpm_start_offset,bpm=read_bpm_txt()
-
-#read hitobj.txt
-HIT_OBJS=read_hitobj_txt()
-
-#create and save title img
-TITLE=Title(BAR_W*4,BAR_H,BACKGROUND_COLOR,name,artist,mapper_name,difficulty_name)
-TITLE.save_img()
-
-#calculate beat time(ms)
-one_beat_time=60000/bpm
-ONE_BAR_TOTAL_TIME=one_beat_time*4
-
-#calculate first barline offset (first have obj's bar)
-i=0
-while bpm_start_offset+(ONE_BAR_TOTAL_TIME*(i+1))<HIT_OBJS[0]['offset']:
-    i+=1
-FIRST_NOTE_BAR_START_OFFSET = bpm_start_offset + ONE_BAR_TOTAL_TIME * i
-CURRENT_BAR_START_OFFSET=FIRST_NOTE_BAR_START_OFFSET
-
+HIT_OBJS=[]
+BAR=""
+ONE_BAR_TOTAL_TIME=-1
+CURRENT_BAR_START_OFFSET=-1
+LAST_BAR_NAME=-1
 BAR_IMG_NUM_DRAW=1 #[1~], current draw bar num
 BAR_IMG_NUM=1 #[1~4], four bar imgs count and file name
 ONE_LINE_IMG_NUM=1 #[1~], one line bar imgs count and file name
+##########code
+def main_func(osu_file_path):
+    global HIT_OBJS
+    global BAR
+    global ONE_BAR_TOTAL_TIME
+    global CURRENT_BAR_START_OFFSET
+    global LAST_BAR_NAME
+    #global OSU_FILE_NAME
+    #global FILE_FOLDER_PATH
 
-#calculate all notes's bar num and position x (not + radius yet)
-calculate_note_position()
-LAST_BAR_NAME=int(HIT_OBJS[-1]['bar_name'])
-#create bar
-#BAR=Bar(BAR_W,BAR_H,BACKGROUND_COLOR,TIME_SIGNATURES,SMALL_OBJ_RADIUS)
-BAR=Bar(BAR_W,BAR_H,BACKGROUND_COLOR,TIME_SIGNATURE,SMALL_OBJ_RADIUS)
+    #init folder
+    clean_temp_folder()
 
-#draw all object
-draw_object_to_bar()
+    #creat black bar img for last line that may have less than 4 bar to concat.
+    gen_black_bar_img()
 
-#last bar
-BAR.save_img(1)
-four_bar_img_to_one_img(ONE_LINE_IMG_NUM,t=0)
-concat_one_line_imgs()
-concat_title_and_bar()
+    #read .osu and parse to title.txt, bpm.txt and hitobj.txt
+    #read_map_information(FILE_FOLDER_PATH+OSU_FILE_NAME)
+    read_map_information(osu_file_path)
 
-#cv2.imshow('image', title.img)
-#key=cv2.waitKey(0)
-#cv2.destroyAllWindows()
+    #read title.txt
+    name,artist,mapper_name,difficulty_name=read_title_txt()
 
+    #read bpm.txt
+    bpm_start_offset,bpm=read_bpm_txt()
+
+    #read hitobj.txt
+    HIT_OBJS=read_hitobj_txt()
+
+    #create and save title img
+    TITLE=Title(BAR_W*4,BAR_H,BACKGROUND_COLOR,name,artist,mapper_name,difficulty_name)
+    TITLE.save_img()
+
+    #calculate beat time(ms)
+    one_beat_time=60000/bpm
+    ONE_BAR_TOTAL_TIME=one_beat_time*4
+
+    #calculate first barline offset (first have obj's bar)
+    i=0
+    while bpm_start_offset+(ONE_BAR_TOTAL_TIME*(i+1))<HIT_OBJS[0]['offset']:
+        i+=1
+    first_note_bar_start_offset = bpm_start_offset + ONE_BAR_TOTAL_TIME * i
+    CURRENT_BAR_START_OFFSET = first_note_bar_start_offset
+
+    #calculate all notes's bar num and position x (not + radius yet)
+    calculate_note_position()
+    LAST_BAR_NAME=int(HIT_OBJS[-1]['bar_name'])
+    f=open('t.txt','w')
+    i=0
+    while i<len(HIT_OBJS):
+        f.write(f"{i},{HIT_OBJS[i]['bar_num']},{HIT_OBJS[i]['bar_name']}\n")
+        #print(i,HIT_OBJS[i]['bar_num'],HIT_OBJS[i]['bar_name'])
+        i+=1
+
+    #create bar
+    #BAR=Bar(BAR_W,BAR_H,BACKGROUND_COLOR,TIME_SIGNATURES,SMALL_OBJ_RADIUS)
+    BAR=Bar(BAR_W,BAR_H,BACKGROUND_COLOR,TIME_SIGNATURE,SMALL_OBJ_RADIUS)
+
+    #draw all object
+    draw_object_to_bar()
+
+    #last bar
+    BAR.save_img(1)
+    four_bar_img_to_one_img(ONE_LINE_IMG_NUM,t=0)
+    concat_one_line_imgs()
+    concat_title_and_bar()
+
+    #cv2.imshow('image', title.img)
+    #key=cv2.waitKey(0)
+    #cv2.destroyAllWindows()
+
+FILE_FOLDER_PATH='./osu file input folder/'
+OSU_FILE_NAME='Umeboshi Chazuke - ICHIBANBOSHIROCKET (_gt) [INNER ONI].osu'
+OSU_FILE_NAME='DJ Raisei - when ____ disappears from the world (Raphalge) [Inner Oni].osu'
+OSU_FILE_NAME='Yorushika - Replicant (Hivie) [Mirror].osu'
+OSU_FILE_NAME='Kobaryo - New Game Plus (Love Plus rmx) (JarvisGaming) [go play Rabbit and Steel].osu'
+main_func(FILE_FOLDER_PATH+OSU_FILE_NAME)
