@@ -459,7 +459,10 @@ FILE_FOLDER_PATH='./osu file input folder/'
 #OSU_FILE_NAME='Kobaryo - New Game Plus (Love Plus rmx) (JarvisGaming) [go play Rabbit and Steel].osu'
 #OSU_FILE_NAME='iyowa - Issen Kounen (Cut Ver.) (_gt) [A Thousand Bars].osu'
 #OSU_FILE_NAME='Rin - Mythic set ~ Heart-Stirring Urban Legends (tasuke912) [Oni].osu'
-OSU_FILE_NAME_LIST=['Umeboshi Chazuke - ICHIBANBOSHIROCKET (_gt) [INNER ONI].osu','DJ Raisei - when ____ disappears from the world (Raphalge) [Inner Oni].osu','Yorushika - Replicant (Hivie) [Mirror].osu','Kobaryo - New Game Plus (Love Plus rmx) (JarvisGaming) [go play Rabbit and Steel].osu','Rin - Mythic set ~ Heart-Stirring Urban Legends (tasuke912) [Oni].osu']
+OSU_FILE_NAME_LIST=['Umeboshi Chazuke - ICHIBANBOSHIROCKET (_gt) [INNER ONI].osu',
+                    'DJ Raisei - when ____ disappears from the world (Raphalge) [Inner Oni].osu',
+                    'Yorushika - Replicant (Hivie) [Mirror].osu',
+                    'Kobaryo - New Game Plus (Love Plus rmx) (JarvisGaming) [go play Rabbit and Steel].osu','Rin - Mythic set ~ Heart-Stirring Urban Legends (tasuke912) [Oni].osu']
 i=0
 while i<len(OSU_FILE_NAME_LIST):
     main_func(FILE_FOLDER_PATH,OSU_FILE_NAME_LIST[i])
