@@ -10,7 +10,7 @@ BAR_H=60
 SMALL_OBJ_RADIUS=10
 BIG_OBJ_RADIUS=15
 #BAR_LINE_OFFSET_X=0
-BAR_NUM_TEXT_Y_OFFSET=15
+BAR_TEXT_Y=16
 NOTE_COLOR_RED = (43, 68, 255) # BGR
 NOTE_COLOR_BLUE = (255, 140, 66) # BGR
 BACKGROUND_COLOR=(105,105,105)
@@ -22,6 +22,9 @@ SMALL_BARLINE_TOP_Y=int((BAR_H-(BAR_LINE_OFFSET_Y*2))/4)
 SMALL_BARLINE_BOTTOM_Y=BAR_H-SMALL_BARLINE_TOP_Y
 #ONE_BAR_LEFT_TOP_Y=0
 #ONE_BAR_RIGHT_BOTTOM_Y=BAR_H
+BAR_TEXT_SCALE=0.55
+TITLE_TEXT_SCALE=1
+TITLE_TEXT_WIDTH_MARGIN=50
 ##########function
 
 def clean_temp_folder():
@@ -223,14 +226,16 @@ def draw_barline(img, bar_w, time_signature, total_bar_num, bar_num_draw,bpm=-1)
             cv2.line(img, (round(decimal.Decimal(str((ONE_BAR_W*i)+(j*one_beat_pix)))),SMALL_BARLINE_TOP_Y+BAR_LINE_OFFSET_Y), (round(decimal.Decimal(str((ONE_BAR_W*i)+(j*one_beat_pix)))),SMALL_BARLINE_BOTTOM_Y+BAR_LINE_OFFSET_Y), (170,170,170), 1)
             j+=1
         #bar num
-        cv2.putText(img,f'{bar_num_draw}',((ONE_BAR_W*i)+5,BAR_NUM_TEXT_Y_OFFSET),cv2.FONT_HERSHEY_SIMPLEX,0.55,(255,0,0),2)
+        cv2.putText(img,f'{bar_num_draw}',((ONE_BAR_W*i)+5,BAR_TEXT_Y),cv2.FONT_HERSHEY_SIMPLEX,BAR_TEXT_SCALE,(255,0,0),2)
         bar_num_draw+=1
         i+=1
 
     #bpm and time signature
     if bpm!=-1:
         bpm_ts_text=f'BPM: {bpm}, ({ori_time_signature}/4)'
-        cv2.putText(img,bpm_ts_text,(80,BAR_NUM_TEXT_Y_OFFSET),cv2.FONT_HERSHEY_SIMPLEX,0.55,(0,0,0),2)
+        #resize
+        retval, baseLine = cv2.getTextSize(bpm_ts_text,cv2.FONT_HERSHEY_SIMPLEX,BAR_TEXT_SCALE,2)
+        cv2.putText(img,bpm_ts_text,(int(ONE_BAR_W/2)-int(retval[0]/2),BAR_TEXT_Y),cv2.FONT_HERSHEY_SIMPLEX,BAR_TEXT_SCALE,(0,0,0),2)
     #bottom line
     cv2.line(img, (0,BAR_H-1), (bar_w,BAR_H-1), (230,230,230), 1)
     return img,bar_num_draw
@@ -296,7 +301,7 @@ def main_func(osu_file_folder_path,osu_file_name):
         #calculate first barline offset (first have obj's bar) for first bpm
         if k==0:
             i=0
-            while bpm_start_offset+(one_bar_total_time*(i+1))<bpm_and_obj_list[k]['hit_objs'][0]['offset']:
+            while bpm_start_offset+(one_bar_total_time*(i+1))<=bpm_and_obj_list[k]['hit_objs'][0]['offset']:
                 i+=1
             first_note_bar_start_offset = bpm_start_offset + one_bar_total_time * i
 
@@ -423,26 +428,20 @@ def main_func(osu_file_folder_path,osu_file_name):
 
     #read title.txt
     name,artist,mapper_name,difficulty_name=read_title_txt()
-
-    width_margin=50
-    height_margin=0
-    text=f'{artist} - {name} [{difficulty_name}] by {mapper_name}'
-    text_scale=1#size
+    
     #create img
     title_img = np.full((BAR_H, BAR_NUM_IN_ONE_CUT*ONE_BAR_W, 3), BACKGROUND_COLOR , np.uint8)
-
+    text=f'{artist} - {name} [{difficulty_name}] by {mapper_name}'
+    
     #resize
+    text_scale=TITLE_TEXT_SCALE#size
     retval, baseLine = cv2.getTextSize(text,cv2.FONT_HERSHEY_SIMPLEX,text_scale,2)
-    if retval[0] + 2*width_margin >= BAR_NUM_IN_ONE_CUT*ONE_BAR_W:
-        while retval[0] + 2*width_margin >= BAR_NUM_IN_ONE_CUT*ONE_BAR_W:
-            text_scale-=0.01
-            retval, baseLine = cv2.getTextSize(text,cv2.FONT_HERSHEY_SIMPLEX,text_scale,2)
-    else:
-        width_margin = int((BAR_NUM_IN_ONE_CUT*ONE_BAR_W - retval[0])/2)
-    height_margin = retval[1] + int((BAR_H-retval[1])/2)
+    while retval[0] + TITLE_TEXT_WIDTH_MARGIN*2 >= BAR_NUM_IN_ONE_CUT*ONE_BAR_W:
+        text_scale-=0.01
+        retval, baseLine = cv2.getTextSize(text,cv2.FONT_HERSHEY_SIMPLEX,text_scale,2)
 
     #draw text
-    cv2.putText(title_img,text,(width_margin,height_margin),cv2.FONT_HERSHEY_SIMPLEX,text_scale,(0,0,0),2)
+    cv2.putText(title_img,text,(int((BAR_NUM_IN_ONE_CUT*ONE_BAR_W/2) - (retval[0]/2)),retval[1] + int((BAR_H-retval[1])/2)),cv2.FONT_HERSHEY_SIMPLEX,text_scale,(0,0,0),2)
 
     #merge
     img = cv2.vconcat([title_img,reconstruct_img])
@@ -463,8 +462,10 @@ OSU_FILE_NAME_LIST=['Umeboshi Chazuke - ICHIBANBOSHIROCKET (_gt) [INNER ONI].osu
                     'DJ Raisei - when ____ disappears from the world (Raphalge) [Inner Oni].osu',
                     'Yorushika - Replicant (Hivie) [Mirror].osu',
                     'Kobaryo - New Game Plus (Love Plus rmx) (JarvisGaming) [go play Rabbit and Steel].osu',
-                    'Rin - Mythic set ~ Heart-Stirring Urban Legends (tasuke912) [Oni].osu']
-i=0
-while i<len(OSU_FILE_NAME_LIST):
-    main_func(FILE_FOLDER_PATH,OSU_FILE_NAME_LIST[i])
-    i+=1
+                    'Rin - Mythic set ~ Heart-Stirring Urban Legends (tasuke912) [Oni].osu',
+                    'technoplanet - Macuilxochitl (Latin Jazz Mix) (Dusk-) [MAXIMUM].osu']
+osu_files=os.listdir(FILE_FOLDER_PATH)
+#i=0
+#while i<len(osu_files):
+#    main_func(FILE_FOLDER_PATH,osu_files[i])
+#    i+=1
