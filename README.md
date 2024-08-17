@@ -1,7 +1,7 @@
 # osu-taiko-Beatmap-Image-Converter
 
 ## Description
-Parse .osu file to beatmap image, taiko mode only.
+Parse .osu file to beatmap image, taiko mode only, inspired by Taiko no Tatsujin.
 
 ## Release
 [OTBIC_v0.1](<https://github.com/rex0988476/osu-taiko-Beatmap-Image-Converter/releases/tag/OTBIC_v0.1>)  
