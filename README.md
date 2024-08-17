@@ -3,9 +3,5 @@
 ## Description
 Parse .osu file to beatmap image.  
 
-## Requirement
-* OpenCV
-* Numpy
-
-## Usage
-WIP
+## Release
+OTBIC_v0.1  
