@@ -1,0 +1,4 @@
+Title:OOPARTS
+Artist:Camellia
+Mapper:Paradise_
+Difficulty Name:Antikythera
