@@ -1,4 +1,4 @@
-Title:OOPARTS
-Artist:Camellia
-Mapper:Paradise_
-Difficulty Name:Antikythera
+Title:Nana Party
+Artist:Nanahira
+Mapper:katacheh
+Difficulty Name:Nanathon!!
