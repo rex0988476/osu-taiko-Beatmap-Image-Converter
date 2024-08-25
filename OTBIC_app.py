@@ -5,29 +5,30 @@ import os
 import shutil
 
 ##########variable
-PRINT_PROCESS=True
+PRINT_PROCESS=False
 ONE_BAR_W=320
 BAR_H=60
 SMALL_OBJ_RADIUS=10
 BIG_OBJ_RADIUS=15
-#BAR_LINE_OFFSET_X=0
 BAR_TEXT_Y=16
 NOTE_COLOR_RED = (43, 68, 255) # BGR
 NOTE_COLOR_BLUE = (255, 140, 66) # BGR
-WHITE=(255,255,255 )
-YELLOW_COLOR = (6, 184, 252) # BGR
-GREEN_COLOR=(42,176,67)# BGR
+SLIDER_COLOR = (6, 184, 252) # BGR
+SPINNER_COLOR=(42,176,67)# BGR
 KIAI_COLOR = (17, 82, 141) # BGR
 BACKGROUND_COLOR=(105,105,105)
+TEXT_COLOR=(0,0,0)
+BAR_NUM_COLOR=(255,0,0)
+FIRST_BARLINE_COLOR=(0,0,255)
+OBJ_BORDER_COLOR=(255,255,255)
+SMALL_BARLINE_COLOR=(170,170,170)
+BARLINE_COLOR=(230,230,230)
+BOTTOM_LINE_COLOR=(230,230,230)
 FAULT_TOLERANCE=1#fit rightmost note that x + BAR.bar_line_offset will exceed BAR_W
-#OFFSET_OF_FIRST_NOTE_IN_A_BAR=BAR_LINE_OFFSET_X
 BAR_LINE_OFFSET_Y=10#for small bar line and notes layout
 BAR_NUM_IN_ONE_CUT=4
-#SMALL_BARLINE_TOP_Y=int((BAR_H-(BAR_LINE_OFFSET_Y*2))/4)
 SMALL_BARLINE_TOP_Y=int(BAR_H/3)
 SMALL_BARLINE_BOTTOM_Y=BAR_H
-#ONE_BAR_LEFT_TOP_Y=0
-#ONE_BAR_RIGHT_BOTTOM_Y=BAR_H
 BAR_TEXT_SCALE=0.55
 TITLE_TEXT_SCALE=1
 TITLE_TEXT_WIDTH_MARGIN=50
@@ -523,8 +524,8 @@ def get_offset_list(first_note_bar_start_offset,one_bar_total_time,last_obj_offs
             #offset_list.append(round(decimal.Decimal(str(first_note_bar_start_offset))))
     return offset_list
 
-def create_bar_num_offset_table_txt(parameters_to_create_bar_num_offset_table):
-    f=open('./output folder/bar_num_offset_table.txt','w')
+def create_bar_num_offset_table_txt(parameters_to_create_bar_num_offset_table,osu_file_name):
+    f=open(f'./output folder/{osu_file_name[:-4]}_bar_num_offset_table.txt','w')
     f.write(f'bar num, offset\n')
     bar_num_draw=1
     k=0
@@ -588,23 +589,23 @@ def draw_barline(img, bar_w_sum,parameters_to_draw_bar_line):
         while i<total_bar_num:
             #bar line
             if i==0:
-                cv2.line(img, (ONE_BAR_W*i+accumulate_pre_bar_w,0), (ONE_BAR_W*i+accumulate_pre_bar_w,BAR_H), (0,0,255), 4) 
+                cv2.line(img, (ONE_BAR_W*i+accumulate_pre_bar_w,0), (ONE_BAR_W*i+accumulate_pre_bar_w,BAR_H), FIRST_BARLINE_COLOR, 4) 
             else:
-                cv2.line(img, (ONE_BAR_W*i+accumulate_pre_bar_w,0), (ONE_BAR_W*i+accumulate_pre_bar_w,BAR_H), (230,230,230), 2)
+                cv2.line(img, (ONE_BAR_W*i+accumulate_pre_bar_w,0), (ONE_BAR_W*i+accumulate_pre_bar_w,BAR_H), BARLINE_COLOR, 2)
             #small bar line
             if i==total_bar_num-1:
                 j=1
                 while (ONE_BAR_W*i)+(j*one_beat_pix) < ONE_BAR_W*i + ONE_BAR_W*last_bar_w_ratio:
-                    cv2.line(img, (round(decimal.Decimal(str((ONE_BAR_W*i)+accumulate_pre_bar_w+(j*one_beat_pix)))),SMALL_BARLINE_TOP_Y), (round(decimal.Decimal(str((ONE_BAR_W*i)+accumulate_pre_bar_w+(j*one_beat_pix)))),SMALL_BARLINE_BOTTOM_Y), (170,170,170), 1)
+                    cv2.line(img, (round(decimal.Decimal(str((ONE_BAR_W*i)+accumulate_pre_bar_w+(j*one_beat_pix)))),SMALL_BARLINE_TOP_Y), (round(decimal.Decimal(str((ONE_BAR_W*i)+accumulate_pre_bar_w+(j*one_beat_pix)))),SMALL_BARLINE_BOTTOM_Y), SMALL_BARLINE_COLOR, 1)
                     j+=1
             else:
                 j=1
                 while (ONE_BAR_W*i)+(j*one_beat_pix) < ONE_BAR_W*(i+1):
-                    cv2.line(img, (round(decimal.Decimal(str((ONE_BAR_W*i)+accumulate_pre_bar_w+(j*one_beat_pix)))),SMALL_BARLINE_TOP_Y), (round(decimal.Decimal(str((ONE_BAR_W*i)+accumulate_pre_bar_w+(j*one_beat_pix)))),SMALL_BARLINE_BOTTOM_Y), (170,170,170), 1)
+                    cv2.line(img, (round(decimal.Decimal(str((ONE_BAR_W*i)+accumulate_pre_bar_w+(j*one_beat_pix)))),SMALL_BARLINE_TOP_Y), (round(decimal.Decimal(str((ONE_BAR_W*i)+accumulate_pre_bar_w+(j*one_beat_pix)))),SMALL_BARLINE_BOTTOM_Y), SMALL_BARLINE_COLOR, 1)
                     j+=1
             #bar num
             if i<total_bar_num-1 or last_bar_w_ratio==1:
-                cv2.putText(img,f'{bar_num_draw}',((ONE_BAR_W*i)+5+accumulate_pre_bar_w,BAR_TEXT_Y),cv2.FONT_HERSHEY_SIMPLEX,BAR_TEXT_SCALE,(255,0,0),2)
+                cv2.putText(img,f'{bar_num_draw}',((ONE_BAR_W*i)+5+accumulate_pre_bar_w,BAR_TEXT_Y),cv2.FONT_HERSHEY_SIMPLEX,BAR_TEXT_SCALE,BAR_NUM_COLOR,2)
             bar_num_draw+=1
             i+=1
 
@@ -613,14 +614,14 @@ def draw_barline(img, bar_w_sum,parameters_to_draw_bar_line):
             bpm_ts_text=f'BPM: {bpm}, ({ori_time_signature}/4)'
             #resize
             retval, baseLine = cv2.getTextSize(bpm_ts_text,cv2.FONT_HERSHEY_SIMPLEX,BAR_TEXT_SCALE,2)
-            cv2.putText(img,bpm_ts_text,(int(ONE_BAR_W/2)-int(retval[0]/2)+accumulate_pre_bar_w,BAR_TEXT_Y),cv2.FONT_HERSHEY_SIMPLEX,BAR_TEXT_SCALE,(0,0,0),2)
+            cv2.putText(img,bpm_ts_text,(int(ONE_BAR_W/2)-int(retval[0]/2)+accumulate_pre_bar_w,BAR_TEXT_Y),cv2.FONT_HERSHEY_SIMPLEX,BAR_TEXT_SCALE,TEXT_COLOR,2)
         
         accumulate_pre_bar_w+=bar_w
             
         k+=1
     
     #bottom line
-    cv2.line(img, (0,BAR_H-1), (bar_w_sum,BAR_H-1), (230,230,230), 1)
+    cv2.line(img, (0,BAR_H-1), (bar_w_sum,BAR_H-1), BOTTOM_LINE_COLOR, 1)
     return img
 
 def draw_obj(img,bar_w_sum,bpm_and_obj_list,parameters_to_draw_bar_obj):
@@ -638,48 +639,48 @@ def draw_obj(img,bar_w_sum,bpm_and_obj_list,parameters_to_draw_bar_obj):
                 if bpm_and_obj_list[j]['hit_objs'][i]['color']=="red":
                     if bpm_and_obj_list[j]['hit_objs'][i]['size']=="small":
                         cv2.circle(img, (x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y), SMALL_OBJ_RADIUS, NOTE_COLOR_RED, -1)
-                        cv2.circle(img, (x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y), SMALL_OBJ_RADIUS, WHITE, 1)
+                        cv2.circle(img, (x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y), SMALL_OBJ_RADIUS, OBJ_BORDER_COLOR, 1)
                     elif bpm_and_obj_list[j]['hit_objs'][i]['size']=="big":
                         cv2.circle(img, (x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y), BIG_OBJ_RADIUS, NOTE_COLOR_RED, -1)
-                        cv2.circle(img, (x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y), BIG_OBJ_RADIUS, WHITE, 1)
+                        cv2.circle(img, (x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y), BIG_OBJ_RADIUS, OBJ_BORDER_COLOR, 1)
                 elif bpm_and_obj_list[j]['hit_objs'][i]['color']=="blue":
                     if bpm_and_obj_list[j]['hit_objs'][i]['size']=="small":
                         cv2.circle(img, (x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y), SMALL_OBJ_RADIUS, NOTE_COLOR_BLUE, -1)
-                        cv2.circle(img, (x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y), SMALL_OBJ_RADIUS, WHITE, 1)
+                        cv2.circle(img, (x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y), SMALL_OBJ_RADIUS, OBJ_BORDER_COLOR, 1)
                     elif bpm_and_obj_list[j]['hit_objs'][i]['size']=="big":
                         cv2.circle(img, (x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y), BIG_OBJ_RADIUS, NOTE_COLOR_BLUE, -1)
-                        cv2.circle(img, (x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y), BIG_OBJ_RADIUS, WHITE, 1)
+                        cv2.circle(img, (x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y), BIG_OBJ_RADIUS, OBJ_BORDER_COLOR, 1)
             if bpm_and_obj_list[j]['hit_objs'][i]['obj_type']=="slider":
                 start_x = x
                 end_x = round(decimal.Decimal(str((bpm_and_obj_list[j]['hit_objs'][i]['end_offset']-first_note_bar_start_offset)/bar_total_time*bar_w)))
                 if bpm_and_obj_list[j]['hit_objs'][i]['size']=="small":
                     if bpm_and_obj_list[j]['hit_objs'][i]['have_tail']==True:
-                        cv2.circle(img,(end_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y), SMALL_OBJ_RADIUS, YELLOW_COLOR,-1)
-                        cv2.circle(img,(end_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y), SMALL_OBJ_RADIUS, WHITE,1)
-                    cv2.rectangle(img, (start_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y-SMALL_OBJ_RADIUS), (end_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y+SMALL_OBJ_RADIUS), WHITE, 1)
-                    cv2.rectangle(img, (start_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y-SMALL_OBJ_RADIUS+1), (end_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y+SMALL_OBJ_RADIUS-1), YELLOW_COLOR, -1)
+                        cv2.circle(img,(end_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y), SMALL_OBJ_RADIUS, SLIDER_COLOR,-1)
+                        cv2.circle(img,(end_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y), SMALL_OBJ_RADIUS, OBJ_BORDER_COLOR,1)
+                    cv2.rectangle(img, (start_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y-SMALL_OBJ_RADIUS), (end_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y+SMALL_OBJ_RADIUS), OBJ_BORDER_COLOR, 1)
+                    cv2.rectangle(img, (start_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y-SMALL_OBJ_RADIUS+1), (end_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y+SMALL_OBJ_RADIUS-1), SLIDER_COLOR, -1)
                     if bpm_and_obj_list[j]['hit_objs'][i]['have_head']==True:
-                        cv2.circle(img,(start_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y),SMALL_OBJ_RADIUS,YELLOW_COLOR,-1)
-                        cv2.circle(img,(start_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y),SMALL_OBJ_RADIUS,WHITE,1)
+                        cv2.circle(img,(start_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y),SMALL_OBJ_RADIUS,SLIDER_COLOR,-1)
+                        cv2.circle(img,(start_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y),SMALL_OBJ_RADIUS,OBJ_BORDER_COLOR,1)
                 elif bpm_and_obj_list[j]['hit_objs'][i]['size']=="big":
                     if bpm_and_obj_list[j]['hit_objs'][i]['have_tail']==True:
-                        cv2.circle(img,(end_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y), BIG_OBJ_RADIUS, YELLOW_COLOR,-1)
-                        cv2.circle(img,(end_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y), BIG_OBJ_RADIUS, WHITE,1)
-                    cv2.rectangle(img, (start_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y-BIG_OBJ_RADIUS), (end_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y+BIG_OBJ_RADIUS), WHITE, 1)
-                    cv2.rectangle(img, (start_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y-BIG_OBJ_RADIUS+1), (end_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y+BIG_OBJ_RADIUS-1), YELLOW_COLOR, -1)
+                        cv2.circle(img,(end_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y), BIG_OBJ_RADIUS, SLIDER_COLOR,-1)
+                        cv2.circle(img,(end_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y), BIG_OBJ_RADIUS, OBJ_BORDER_COLOR,1)
+                    cv2.rectangle(img, (start_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y-BIG_OBJ_RADIUS), (end_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y+BIG_OBJ_RADIUS), OBJ_BORDER_COLOR, 1)
+                    cv2.rectangle(img, (start_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y-BIG_OBJ_RADIUS+1), (end_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y+BIG_OBJ_RADIUS-1), SLIDER_COLOR, -1)
                     if bpm_and_obj_list[j]['hit_objs'][i]['have_head']==True:
-                        cv2.circle(img,(start_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y),BIG_OBJ_RADIUS,YELLOW_COLOR,-1)
-                        cv2.circle(img,(start_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y),BIG_OBJ_RADIUS,WHITE,1)
+                        cv2.circle(img,(start_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y),BIG_OBJ_RADIUS,SLIDER_COLOR,-1)
+                        cv2.circle(img,(start_x+accumulate_pre_bar_w, int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y),BIG_OBJ_RADIUS,OBJ_BORDER_COLOR,1)
             if bpm_and_obj_list[j]['hit_objs'][i]['obj_type']=="spinner":
                 start_x = x
                 end_x = round(decimal.Decimal(str((bpm_and_obj_list[j]['hit_objs'][i]['end_offset']-first_note_bar_start_offset)/bar_total_time*bar_w)))
                 if bpm_and_obj_list[j]['hit_objs'][i]['have_tail']==True:
-                    cv2.line(img, (end_x-5+accumulate_pre_bar_w,int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y-5), (end_x+5+accumulate_pre_bar_w,int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y+5), GREEN_COLOR, 3)
-                    cv2.line(img, (end_x+5+accumulate_pre_bar_w,int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y-5), (end_x-5+accumulate_pre_bar_w,int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y+5), GREEN_COLOR, 3)
-                cv2.line(img, (start_x+accumulate_pre_bar_w,int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y), (end_x+accumulate_pre_bar_w,int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y), GREEN_COLOR, 2)
+                    cv2.line(img, (end_x-5+accumulate_pre_bar_w,int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y-5), (end_x+5+accumulate_pre_bar_w,int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y+5), SPINNER_COLOR, 3)
+                    cv2.line(img, (end_x+5+accumulate_pre_bar_w,int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y-5), (end_x-5+accumulate_pre_bar_w,int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y+5), SPINNER_COLOR, 3)
+                cv2.line(img, (start_x+accumulate_pre_bar_w,int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y), (end_x+accumulate_pre_bar_w,int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y), SPINNER_COLOR, 2)
                 if bpm_and_obj_list[j]['hit_objs'][i]['have_head']==True:
-                    cv2.circle(img,(start_x+accumulate_pre_bar_w,int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y),BIG_OBJ_RADIUS,GREEN_COLOR,-1)
-                    cv2.circle(img,(start_x+accumulate_pre_bar_w,int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y),BIG_OBJ_RADIUS,WHITE,1)
+                    cv2.circle(img,(start_x+accumulate_pre_bar_w,int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y),BIG_OBJ_RADIUS,SPINNER_COLOR,-1)
+                    cv2.circle(img,(start_x+accumulate_pre_bar_w,int((SMALL_BARLINE_BOTTOM_Y-(SMALL_BARLINE_TOP_Y))/2)+SMALL_BARLINE_TOP_Y),BIG_OBJ_RADIUS,OBJ_BORDER_COLOR,1)
             i-=1
         j-=1
     
@@ -765,12 +766,12 @@ def create_title_img(artist,name,difficulty_name,mapper_name):
         retval, baseLine = cv2.getTextSize(text,cv2.FONT_HERSHEY_SIMPLEX,text_scale,2)
 
     #draw text
-    cv2.putText(title_img,text,(int((BAR_NUM_IN_ONE_CUT*ONE_BAR_W/2) - (retval[0]/2)),retval[1] + int((BAR_H-retval[1])/2)),cv2.FONT_HERSHEY_SIMPLEX,text_scale,(0,0,0),2)
+    cv2.putText(title_img,text,(int((BAR_NUM_IN_ONE_CUT*ONE_BAR_W/2) - (retval[0]/2)),retval[1] + int((BAR_H-retval[1])/2)),cv2.FONT_HERSHEY_SIMPLEX,text_scale,TEXT_COLOR,2)
 
     return title_img
 
 ##########code
-def main_func(mode,osu_file_folder_path,osu_file_name,tp_list={},setting_parameters={}):
+def main_func(mode,osu_file_folder_path,osu_file_name,tp_list={},setting_parameters={},color_setting_parameters={}):
     osu_file_path=osu_file_folder_path+osu_file_name
     if PRINT_PROCESS:
         print(osu_file_name)
@@ -789,6 +790,22 @@ def main_func(mode,osu_file_folder_path,osu_file_name,tp_list={},setting_paramet
 
         BAR_NUM_IN_ONE_CUT = setting_parameters['bar_num_in_one_cut']
         CUT_AND_MERGE_MODE = setting_parameters['cut_and_merge_mode']
+    
+    if color_setting_parameters!={}:
+        global NOTE_COLOR_BLUE, NOTE_COLOR_RED, SLIDER_COLOR, SPINNER_COLOR, BACKGROUND_COLOR, OBJ_BORDER_COLOR, KIAI_COLOR, FIRST_BARLINE_COLOR, BARLINE_COLOR, SMALL_BARLINE_COLOR, BAR_NUM_COLOR, TEXT_COLOR, BOTTOM_LINE_COLOR
+        NOTE_COLOR_RED=color_setting_parameters['red_note']
+        NOTE_COLOR_BLUE=color_setting_parameters['blue_note']
+        SLIDER_COLOR=color_setting_parameters['slider']
+        SPINNER_COLOR=color_setting_parameters['spinner']
+        BACKGROUND_COLOR=color_setting_parameters['background']
+        KIAI_COLOR=color_setting_parameters['kiai']
+        OBJ_BORDER_COLOR=color_setting_parameters['border']
+        FIRST_BARLINE_COLOR=color_setting_parameters['first_barline']
+        BARLINE_COLOR=color_setting_parameters['barline']
+        SMALL_BARLINE_COLOR=color_setting_parameters['small_barline']
+        BOTTOM_LINE_COLOR=color_setting_parameters['bottom_line']
+        BAR_NUM_COLOR=color_setting_parameters['bar_num']
+        TEXT_COLOR=color_setting_parameters['text']
     
     #init folder
     if PRINT_PROCESS:
@@ -952,7 +969,7 @@ def main_func(mode,osu_file_folder_path,osu_file_name,tp_list={},setting_paramet
     #create bar_num_offset_table.txt
     if PRINT_PROCESS:
         print('create_bar_num_offset_table_txt')
-    create_bar_num_offset_table_txt(parameters_to_create_bar_num_offset_table)
+    create_bar_num_offset_table_txt(parameters_to_create_bar_num_offset_table,osu_file_name)
 
     #get kiai offset pair (on and off)
     if PRINT_PROCESS:
