@@ -429,7 +429,7 @@ def assign_objs_to_bpm(hit_objs,bpm_list):
     i=0
     j=0
     while i<len(bpm_list):
-        if bpm_list[i]['bpm']>0 and bpm_list[i]['time_signature']<=16 :#NO WEIRD BPM AND TIME SIGNATURE PLEASE.
+        if bpm_list[i]['bpm']>0 and bpm_list[i]['bpm']<=1000 and bpm_list[i]['time_signature']<=16 :#NO WEIRD BPM AND TIME SIGNATURE PLEASE.
             bpm_start_offset=bpm_list[i]['offset']
             bpm=bpm_list[i]['bpm']
             time_signature=bpm_list[i]['time_signature']
@@ -445,7 +445,12 @@ def assign_objs_to_bpm(hit_objs,bpm_list):
             while j<len(hit_objs) and hit_objs[j]['offset']<next_bpm_offset:
                 bpm_and_obj_list[-1]["hit_objs"].append(hit_objs[j])#{'offset':offset,'obj_type':obj_type,'color':color,'size':size}
                 j+=1
-            i+=1
+            if PRINT_PROCESS:
+                print(f'{i+1}/{len(bpm_list)}(in)')
+        else:
+            if PRINT_PROCESS:
+                print(f'{i+1}/{len(bpm_list)}(out)')
+        i+=1
     return bpm_and_obj_list
 
 def assign_kiai_to_bpm(parameters_to_assign_kiai_to_bpm,sv_kiai_offset_pair_list):
@@ -1034,7 +1039,7 @@ def main_func(mode,osu_file_folder_path,osu_file_name,tp_list={},setting_paramet
 FILE_FOLDER_PATH='./osu file input folder/'
 TEST_MODE=0
 if TEST_MODE==1:
-    main_func('auto',FILE_FOLDER_PATH,'Nanahira - Nana Party (katacheh) [Nanathon!!].osu')
+    main_func('auto',FILE_FOLDER_PATH,'iyowa - Issen Kounen (Cut Ver.) (_gt) [A Thousand Bars].osu')
 elif TEST_MODE==2:
     osu_files=os.listdir(FILE_FOLDER_PATH)
     i=0
