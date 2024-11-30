@@ -1024,7 +1024,7 @@ def main_func(mode,osu_file_folder_path,osu_file_name,tp_list={},setting_paramet
     #create img
     if PRINT_PROCESS:
         print('create_title_img')
-    title_img = create_title_img(name,artist,mapper_name,difficulty_name)
+    title_img = create_title_img(name,artist,difficulty_name,mapper_name)
     
     #merge
     if PRINT_PROCESS:
